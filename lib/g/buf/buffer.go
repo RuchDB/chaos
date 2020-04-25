@@ -20,8 +20,8 @@ type Buffer interface {
 	Len() int
 	Cap() int
 
-	Clear()
-	Reset()
+	Clear() // Clear buffer data
+	Reset() // Clear & Shrink buffer
 
 	Peak(n int) ([]byte, error)
 	PeakExact(n int) ([]byte, error)

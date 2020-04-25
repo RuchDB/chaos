@@ -1,7 +1,7 @@
 package buf
 
 import (
-	"github.com/RuchDB/chaos/util"
+	"github.com/RuchDB/chaos/lib/g/util"
 )
 
 const (

@@ -10,8 +10,13 @@ func Now() time.Time {
 }
 
 // Timestamp in ms
-func Timestamp(t time.Time) int64 {
+func TimestampMs(t time.Time) int64 {
 	return t.UnixNano() / 1000000
+}
+
+// Timestamp in ns
+func TimestampNs(t time.Time) int64 {
+	return t.UnixNano()
 }
 
 // Full time format: 2020-01-01 00:00:00.0000

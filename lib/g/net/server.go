@@ -3,33 +3,57 @@ package net
 import (
 	"net"
 
-	"github.com/RuchDB/chaos/log"
+	"github.com/RuchDB/chaos/lib/g/util"
+	"github.com/RuchDB/chaos/lib/g/net/codec"
 )
 
 const (
 	IPV4_ANY   = "0.0.0.0"
 	IPV4_LOCAL = "127.0.0.1"
 
-	SERVER_TYPE_TCP = "tcp"
+	SERVER_CONN_MAX = 1000000
+)
 
-	SERVER_CONN_MAX = 10000
+/************************* TCP/IPv4 Server *************************/
+
+const (
+	SERVER_STATUS_UNINITED = 0
+	SERVER_STATUS_INITED   = 1
+	SERVER_STATUS_RUNNING  = 2
+	SERVER_STATUS_STOPPED  = 3
+
+	SERVER_CTRL_FLAG_INIT = 0
+	SERVER_CTRL_FLAG_RUN  = 1
+	SERVER_CTRL_FLAG_STOP = 2
 )
 
 type Server struct {
-	listenIp   string
-	listenPort uint16
+	addr     *net.TCPAddr
+	listener *net.TCPListener
+	status   int
+	ctrlFlag int
 
-	listener net.Listener
-
-	connManager *ConnectionManager
+	pktCodec codec.Codec
 }
 
-func NewTcp4Server(ipv4 string, port uint16) *Server {
-	return &Server{
-		listenIp:   ipv4,
-		listenPort: port,
+func CreateServer(addr string) (*Server, error) {
+	taddr, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return nil, err
 	}
+
+	return &Server{
+		addr: taddr,
+
+		status:   SERVER_STATUS_UNINITED,
+		ctrlFlag: SERVER_CTRL_FLAG_INIT,
+	}, nil
 }
+
+func (server *Server) SetNetCodec(netCodec codec.Codec) {
+	server.pktCodec = netCodec
+}
+
 
 func (server *Server) Start() error {
 	addr := IPv4AddrString(server.listenIp, server.listenPort)
@@ -56,4 +80,48 @@ func (server *Server) Start() error {
 	}
 
 	return nil
+}
+
+/************************* Server Builder *************************/
+
+type serverBuilder struct {
+	listenIp   string
+	listenPort uint16
+
+	maxConns int
+}
+
+func NewServerBuilder() *serverBuilder {
+	return &serverBuilder{
+		listenIp: IPV4_ANY,
+		listenPort: 2020,
+
+		maxConns: 10000,
+	}
+}
+
+func (builder *serverBuilder) SetListenAddr(ip string, port int) *serverBuilder {
+	builder.listenIp = ip
+	builder.listenPort = uint16(port)
+	return builder
+}
+
+func (builder *serverBuilder) SetPacketCodec() *serverBuilder {
+	return builder
+}
+
+func (builder *serverBuilder) SetMaxConns(conns int) *serverBuilder {
+	conns = util.MaxInt(conns, 1)
+	conns = util.MinInt(conns, SERVER_CONN_MAX)
+	builder.maxConns = conns
+	return builder
+}
+
+func (builder *serverBuilder) Build() *Server {
+	return &Server{
+		listenIp:   builder.listenIp,
+		listenPort: builder.listenPort,
+		
+		connManager: NewConnectionManager(builder.maxConns),
+	}
 }

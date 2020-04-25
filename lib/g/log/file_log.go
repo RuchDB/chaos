@@ -4,45 +4,46 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/RuchDB/chaos/util"
+	"github.com/RuchDB/chaos/lib/g/util"
 )
 
-type fileLog struct {
+/************************* File-Based Logger *************************/
+
+type fileLogger struct {
 	logLevel LogLevel
 
 	callerDepth int
 }
 
-func NewFileBasedLogger() *fileLog {
-	return &fileLog{
+func NewFileBasedLogger() *fileLogger {
+	return &fileLogger{
 		logLevel: LOG_DEFAULT,
 
 		callerDepth: 0,
 	}
 }
 
-func (flog *fileLog) SetLogLevel(level LogLevel) *fileLog {
+func (flog *fileLogger) SetLogLevel(level LogLevel) {
 	flog.logLevel = level
-	return flog
 }
 
-func (flog *fileLog) SetCallerDepth(depth int) *fileLog {
+func (flog *fileLogger) SetCallerDepth(depth int) {
 	flog.callerDepth = depth
-	return flog
 }
 
-func (flog *fileLog) write(msg string) {
+func (flog *fileLogger) write(msg string) {
+	//! TODO: ...
 	fmt.Print(msg)
 }
 
-func (flog *fileLog) log(level LogLevel, tag string, v ...interface{}) {
+func (flog *fileLogger) log(level LogLevel, tag string, v ...interface{}) {
 	if level >= flog.logLevel {
 		msg := fmt.Sprintf("%s %s\n", flog.prefix(tag), fmt.Sprint(v...))
 		flog.write(msg)
 	}
 }
 
-func (flog *fileLog) logf(level LogLevel, tag string, format string, v ...interface{}) {
+func (flog *fileLogger) logf(level LogLevel, tag string, format string, v ...interface{}) {
 	if level >= flog.logLevel {
 		body := fmt.Sprintf(format, v...)
 
@@ -57,7 +58,7 @@ func (flog *fileLog) logf(level LogLevel, tag string, format string, v ...interf
 	}
 }
 
-func (flog *fileLog) prefix(tag string) string {
+func (flog *fileLogger) prefix(tag string) string {
 	// 2020-01-01 00:00:00 [INFO] [main.go:10 main] [G1]
 	var builder strings.Builder
 
@@ -66,7 +67,7 @@ func (flog *fileLog) prefix(tag string) string {
 
 	builder.WriteString(fmt.Sprintf(" [%s]", tag))
 
-	// !!! NOTE: Take care NOT to refactor (inline/extract) this function as well as its caller in `fileLog`.
+	// !!! NOTE: Take care NOT to refactor (inline/extract) this function as well as its caller in `fileLogger`.
 	//           OR the CALLER FRAME may be NOT what we need.
 	if fn, file, line, ok := util.Caller(3 + flog.callerDepth); ok {
 		builder.WriteString(fmt.Sprintf(" [%s:%d %s]", file, line, fn))
@@ -79,42 +80,77 @@ func (flog *fileLog) prefix(tag string) string {
 	return builder.String()
 }
 
-func (flog *fileLog) Trace(v ...interface{}) {
+func (flog *fileLogger) Trace(v ...interface{}) {
 	flog.log(LOG_TRACE, TAG_TRACE, v...)
 }
 
-func (flog *fileLog) Tracef(format string, v ...interface{}) {
+func (flog *fileLogger) Tracef(format string, v ...interface{}) {
 	flog.logf(LOG_TRACE, TAG_TRACE, format, v...)
 }
 
-func (flog *fileLog) Debug(v ...interface{}) {
+func (flog *fileLogger) Debug(v ...interface{}) {
 	flog.log(LOG_DEBUG, TAG_DEBUG, v...)
 }
 
-func (flog *fileLog) Debugf(format string, v ...interface{}) {
+func (flog *fileLogger) Debugf(format string, v ...interface{}) {
 	flog.logf(LOG_DEBUG, TAG_DEBUG, format, v...)
 }
 
-func (flog *fileLog) Info(v ...interface{}) {
+func (flog *fileLogger) Info(v ...interface{}) {
 	flog.log(LOG_INFO, TAG_INFO, v...)
 }
 
-func (flog *fileLog) Infof(format string, v ...interface{}) {
+func (flog *fileLogger) Infof(format string, v ...interface{}) {
 	flog.logf(LOG_INFO, TAG_INFO, format, v...)
 }
 
-func (flog *fileLog) Warn(v ...interface{}) {
+func (flog *fileLogger) Warn(v ...interface{}) {
 	flog.log(LOG_WARN, TAG_WARN, v...)
 }
 
-func (flog *fileLog) Warnf(format string, v ...interface{}) {
+func (flog *fileLogger) Warnf(format string, v ...interface{}) {
 	flog.logf(LOG_WARN, TAG_WARN, format, v...)
 }
 
-func (flog *fileLog) Error(v ...interface{}) {
+func (flog *fileLogger) Error(v ...interface{}) {
 	flog.log(LOG_ERROR, TAG_ERROR, v...)
 }
 
-func (flog *fileLog) Errorf(format string, v ...interface{}) {
+func (flog *fileLogger) Errorf(format string, v ...interface{}) {
 	flog.logf(LOG_ERROR, TAG_ERROR, format, v...)
+}
+
+
+/************************* File Logger Builder *************************/
+
+type fileLoggerBuilder struct {
+	logLevel LogLevel
+
+	callerDepth int
+}
+
+func NewFileBasedLoggerBuilder() *fileLoggerBuilder {
+	return &fileLoggerBuilder{
+		logLevel: LOG_DEFAULT,
+
+		callerDepth: 0,
+	}
+}
+
+func (builder *fileLoggerBuilder) SetLogLevel(level LogLevel) *fileLoggerBuilder {
+	builder.logLevel = level
+	return builder
+}
+
+func (builder *fileLoggerBuilder) SetCallerDepth(depth int) *fileLoggerBuilder {
+	builder.callerDepth = depth
+	return builder
+}
+
+func (builder *fileLoggerBuilder) Build() Logger {
+	return &fileLogger{
+		logLevel: builder.logLevel,
+		
+		callerDepth: builder.callerDepth,
+	}
 }

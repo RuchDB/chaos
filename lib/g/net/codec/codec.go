@@ -1,5 +1,14 @@
 package proto
 
+import "errors"
+
+const (
+	CODEC_ID_REDIS = 1
+
+	CODEC_NAME_REDIS = "Redis Codec"
+)
+
+
 /************************* Codec Types *************************/
 
 const (
@@ -33,27 +42,42 @@ const (
 	ERR_CODEC_UNEXIST = errors.New("codec unexists")
 )
 
-var codecMap map[int]Codec
+var codecs []Codec
 
 func init() {
-	codecMap = make(map[int]Codec)
+	codecs = make([]Codec, 0, 8)
+
+	RegisterCodec(&RedisCodec{})
 }
 
 func RegisterCodec(codec Codec) error {
-	if _, exist := codecMap[codec.Id()]; exist {
-		return ERR_CODEC_EXIST
+	for _, c := range codecs {
+		if codec.Id() == c.Id() || codec.Name() == c.Name() {
+			return ERR_CODEC_EXIST
+		}
 	}
 
-	codecMap[codec.Id()] = codec
-	
+	codecs = append(codecs, codec)
+
 	return nil
 }
 
-func GetCodec(codecId int) (Codec, error) {
-	codec, exist := codecMap[codecId]
-	if !exist {
-		return nil, ERR_CODEC_UNEXIST
+func GetCodecById(codecId int) (Codec, error) {
+	for _, c := range codecs {
+		if c.Id() == codecId {
+			return c, nil
+		}
 	}
 
-	return codec, nil
+	return nil, ERR_CODEC_UNEXIST
+}
+
+func GetCodecByName(codecName string) (Codec, error) {
+	for _, c := range codecs {
+		if c.Name() == codecName {
+			return c, nil
+		}
+	}
+
+	return nil, ERR_CODEC_UNEXIST
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/RuchDB/chaos/lib/log"
-	"github.com/RuchDB/chaos/lib/net"
+	"github.com/RuchDB/chaos/lib/g/log"
+	"github.com/RuchDB/chaos/lib/g/net"
 )
 
 func main() {

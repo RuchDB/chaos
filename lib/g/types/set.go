@@ -35,7 +35,7 @@ func (set *Set) Delete(elem interface{}) {
 	delete(set.elems, elem)
 }
 
-func (set *Set) Foreach(visit func (interface{})) {
+func (set *Set) ForEach(visit func (interface{})) {
 	for elem, _ := range set.elems {
 		visit(elem)
 	}
