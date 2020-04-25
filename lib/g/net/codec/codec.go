@@ -1,6 +1,8 @@
 package proto
 
-import "errors"
+import (
+	"errors"
+)
 
 const (
 	CODEC_ID_REDIS = 1

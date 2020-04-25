@@ -1,7 +1,10 @@
 package net
 
 import (
+	"fmt"
 	"net"
+	"time"
+	"errors"
 
 	"github.com/RuchDB/chaos/lib/g/util"
 	"github.com/RuchDB/chaos/lib/g/net/codec"
@@ -12,15 +15,16 @@ const (
 	IPV4_LOCAL = "127.0.0.1"
 
 	SERVER_CONN_MAX = 1000000
+
+	SERVER_ACCEPT_TIMEOUT_MS = 10
 )
 
 /************************* TCP/IPv4 Server *************************/
 
 const (
-	SERVER_STATUS_UNINITED = 0
-	SERVER_STATUS_INITED   = 1
-	SERVER_STATUS_RUNNING  = 2
-	SERVER_STATUS_STOPPED  = 3
+	SERVER_STATUS_INITED   = 0
+	SERVER_STATUS_RUNNING  = 1
+	SERVER_STATUS_STOPPED  = 2
 
 	SERVER_CTRL_FLAG_INIT = 0
 	SERVER_CTRL_FLAG_RUN  = 1
@@ -33,29 +37,46 @@ type Server struct {
 	status   int
 	ctrlFlag int
 
-	pktCodec codec.Codec
+	netCodec codec.Codec
+
+	connManager *ConnectionManager
 }
 
-func CreateServer(addr string) (*Server, error) {
-	taddr, err := net.ResolveTCPAddr("tcp", addr)
-	if err != nil {
-		return nil, err
-	}
-
+func NewServer(addr *net.TCPAddr, netCodec codec.Codec, maxConns int) *Server {
 	return &Server{
-		addr: taddr,
-
-		status:   SERVER_STATUS_UNINITED,
+		addr:     addr,
+		status:   SERVER_STATUS_INITED,
 		ctrlFlag: SERVER_CTRL_FLAG_INIT,
-	}, nil
-}
+		
+		netCodec: netCodec,
 
-func (server *Server) SetNetCodec(netCodec codec.Codec) {
-	server.pktCodec = netCodec
+		connManager: NewConnectionManager(maxConns),
+	}
 }
-
 
 func (server *Server) Start() error {
+	listener, err := net.ListenTCP("tcp", server.addr)
+	if err != nil {
+		return fmt.Errorf("Fail to listen on TCP [%s]: [%v]", server.addr.String(), err)
+	}
+
+	server.listener = listener
+	server.ctrlFlag = SERVER_CTRL_FLAG_RUN
+	server.status = SERVER_STATUS_RUNNING
+
+	// Accept timeout
+	server.listener.SetDeadline(time.Now().Add(time.))
+
+	// Loop to accept incoming connections
+	for server.status == SERVER_STATUS_RUNNING && server.ctrlFlag != SERVER_CTRL_FLAG_STOP {
+		conn, err := server.listener.Accept()
+		if err != nil {
+
+		}
+	}
+
+
+
 	addr := IPv4AddrString(server.listenIp, server.listenPort)
 	listener, err := net.Listen(SERVER_TYPE_TCP, addr)
 	if err != nil {
@@ -82,46 +103,92 @@ func (server *Server) Start() error {
 	return nil
 }
 
-/************************* Server Builder *************************/
+func (server *Server) Stop() {
+	server.ctrlFlag = SERVER_CTRL_FLAG_STOP
+}
 
-type serverBuilder struct {
-	listenIp   string
-	listenPort uint16
+
+/************************* Server Creator *************************/
+
+type ServerCreator struct {
+	addr     *net.TCPAddr
+	netCodec codec.Codec
 
 	maxConns int
 }
 
-func NewServerBuilder() *serverBuilder {
-	return &serverBuilder{
-		listenIp: IPV4_ANY,
-		listenPort: 2020,
-
+func NewServerCreator() *ServerCreator {
+	return &ServerCreator{
 		maxConns: 10000,
 	}
 }
 
-func (builder *serverBuilder) SetListenAddr(ip string, port int) *serverBuilder {
-	builder.listenIp = ip
-	builder.listenPort = uint16(port)
-	return builder
+func (creator *ServerCreator) ConfigListenAddr(addr *net.TCPAddr) error {
+	if addr == nil {
+		return errors.New("config error: nil address")
+	}
+
+	creator.addr = addr
+	return nil
 }
 
-func (builder *serverBuilder) SetPacketCodec() *serverBuilder {
-	return builder
+func (creator *ServerCreator) ConfigListenAddrByString(addr string) error {
+	addr, err := net.ResolveTCPAddr("tcp", addr)
+	if err != nil {
+		return errors.New("config error: invalid address [ipv4:port]")
+	}
+
+	creator.addr = addr
+	return nil
 }
 
-func (builder *serverBuilder) SetMaxConns(conns int) *serverBuilder {
+func (creator *ServerCreator) ConfigListenAddrByIpPort(ip string, port int) error {
+	return creator.ConfigListenAddrByString(fmt.Sprintf("%s:%d", ip, port))
+}
+
+func (creator *ServerCreator) ConfigMaxConns(conns int) error {
 	conns = util.MaxInt(conns, 1)
 	conns = util.MinInt(conns, SERVER_CONN_MAX)
-	builder.maxConns = conns
-	return builder
+	creator.maxConns = conns
+	return nil
 }
 
-func (builder *serverBuilder) Build() *Server {
-	return &Server{
-		listenIp:   builder.listenIp,
-		listenPort: builder.listenPort,
-		
-		connManager: NewConnectionManager(builder.maxConns),
+func (creator *ServerCreator) ConfigNetCodec(c codec.Codec) error {
+	if c == nil {
+		return errors.New("config error: nil net codec")
 	}
+
+	creator.netCodec = c
+	return nil
+}
+
+func (creator *ServerCreator) ConfigNetCodecById(cid int) error {
+	c, err := codec.GetCodecById(cid)
+	if err != nil {
+		return errors.New("config error: invalid net codec id")
+	}
+
+	creator.netCodec = c
+	return nil
+}
+
+func (creator *ServerCreator) ConfigNetCodecByName(cname string) error {
+	c, err := codec.GetCodecByName(cname)
+	if err != nil {
+		return errors.New("config error: invalid net codec name")
+	}
+
+	creator.netCodec = c
+	return nil
+}
+
+func (creator *ServerCreator) CreateServer() (*Server, error) {
+	if creator.addr == nil {
+		return nil, errors.New("create server failed: nil address")
+	}
+	if creator.netCodec == nil {
+		return nil, errors.New("create server failed: nil net codec")
+	}
+
+	return NewServer(creator.addr, creator.netCodec, creator.maxConns), nil
 }
