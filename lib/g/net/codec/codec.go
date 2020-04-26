@@ -14,9 +14,9 @@ const (
 /************************* Codec Types *************************/
 
 const (
-	ERR_ENCODE_TYPE_UNSUPPORTED = errors.New("unsupported data type")
-
-	ERR_DECODE_DATA_INCOMPLETE = errors.New("incomplete data")
+	ERR_CODEC_TYPE_UNSUPPORTED = errors.New("unsupported data type")
+	ERR_CODEC_DATA_INCOMPLETE  = errors.New("incomplete data")
+	ERR_CODEC_DATA_INVALID     = errors.New("invalid data")
 )
 
 type Codec interface {

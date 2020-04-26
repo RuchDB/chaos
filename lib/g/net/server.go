@@ -16,7 +16,7 @@ const (
 
 	SERVER_CONN_MAX = 1000000
 
-	SERVER_ACCEPT_TIMEOUT_MS = 10
+	SERVER_ACCEPT_TIMEOUT_MS = 100
 )
 
 /************************* TCP/IPv4 Server *************************/
@@ -65,40 +65,26 @@ func (server *Server) Start() error {
 	server.status = SERVER_STATUS_RUNNING
 
 	// Accept timeout
-	server.listener.SetDeadline(time.Now().Add(time.))
+	server.listener.SetDeadline(time.Now().Add(time.Millisecond * SERVER_ACCEPT_TIMEOUT_MS))
 
 	// Loop to accept incoming connections
+	var serr error
 	for server.status == SERVER_STATUS_RUNNING && server.ctrlFlag != SERVER_CTRL_FLAG_STOP {
-		conn, err := server.listener.Accept()
+		conn, err := server.listener.AcceptTCP()
 		if err != nil {
+			if IsTimeoutError(err) {
+				continue
+			}
 
-		}
-	}
-
-
-
-	addr := IPv4AddrString(server.listenIp, server.listenPort)
-	listener, err := net.Listen(SERVER_TYPE_TCP, addr)
-	if err != nil {
-		log.Errorf("Fail to start TCP server on [%s]. [%v]", addr, err)
-		return err
-	}
-	log.Infof("Start TCP server on [%s]", addr)
-
-	server.listener = listener
-	server.connManager = NewConnectionManager(SERVER_CONN_MAX)
-
-	// Loop to accept incoming connections
-	for {
-		conn, err := server.listener.Accept()
-		if err != nil {
-			log.Debugf("Fail to accept incoming connection. [%v]", err)
-			continue
+			serr = fmt.Errorf("Internal server error: [%v]", err)
+			break
 		}
 
 		// Delegate the incoming connection to connection manager
 		server.connManager.Handle(conn)
 	}
+
+	
 
 	return nil
 }
