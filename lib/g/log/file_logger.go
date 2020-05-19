@@ -68,7 +68,7 @@ func (flog *fileLogger) prefix(tag string) string {
 	builder.WriteString(fmt.Sprintf(" [%s]", tag))
 
 	// !!! NOTE: Take care NOT to refactor (inline/extract) this function as well as its caller in `fileLogger`.
-	//           OR the CALLER FRAME may be NOT what we need.
+	//           OTHERWISE the CALLER FRAME may be NOT what we need.
 	if fn, file, line, ok := util.Caller(3 + flog.callerDepth); ok {
 		builder.WriteString(fmt.Sprintf(" [%s:%d %s]", file, line, fn))
 	}
