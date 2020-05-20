@@ -15,6 +15,11 @@ func IsNetOpError(err error) bool {
 }
 
 func IsTimeoutError(err error) bool {
-	opErr, ok := err.(*net.OpError)
-	return ok && opErr.Timeout()
+	netErr, ok := err.(net.Error)
+	return ok && netErr.Timeout()
+}
+
+func IsTemporaryError(err error) bool {
+	netErr, ok := err.(net.Error)
+	return ok && netErr.Temporary()
 }

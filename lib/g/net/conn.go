@@ -44,6 +44,7 @@ func NewConnection(conn *net.TCPConn, netCodec codec.Codec) *Connection {
 /************************* Connection Manager *************************/
 
 type ConnectionManager struct {
+	
 }
 
 

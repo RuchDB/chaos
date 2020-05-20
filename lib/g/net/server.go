@@ -54,9 +54,11 @@ func NewServer(addr *net.TCPAddr, netCodec codec.Codec, maxConns int) *Server {
 	}
 }
 
-func (server *Server) Start() error {
+func (server *Server) Run() error {
+	logger.Infof("Start to listen on [%s]", server.addr.String())
 	listener, err := net.ListenTCP("tcp", server.addr)
 	if err != nil {
+		logger.Errorf("Listen on [%s] error: [%v]", server.addr.String(), err)
 		return fmt.Errorf("Fail to listen on TCP [%s]: [%v]", server.addr.String(), err)
 	}
 
@@ -67,26 +69,41 @@ func (server *Server) Start() error {
 	// Accept timeout
 	server.listener.SetDeadline(time.Now().Add(time.Millisecond * SERVER_ACCEPT_TIMEOUT_MS))
 
+	logger.Infof("Listen on TCP [%s] & Wait for incoming connections", server.addr.String())
 	// Loop to accept incoming connections
 	var serr error
 	for server.status == SERVER_STATUS_RUNNING && server.ctrlFlag != SERVER_CTRL_FLAG_STOP {
 		conn, err := server.listener.AcceptTCP()
 		if err != nil {
-			if IsTimeoutError(err) {
+			if IsTimeoutError(err) || IsTemporaryError(err) {
 				continue
 			}
 
+			logger.Errorf("Accept connections error: [%v]", err)
 			serr = fmt.Errorf("Internal server error: [%v]", err)
 			break
 		}
+		logger.Infof("Remote connection [%s] is accepted", conn.RemoteAddr().String())
 
 		// Delegate the incoming connection to connection manager
 		server.connManager.Handle(conn)
 	}
-
 	
+	logger.Infof("Shutdown server on TCP [%s]", server.addr.String())
+	server.status = SERVER_STATUS_STOPPED
+	server.listener.Close()
+	// Close/Clear remote connections
+	server.connManager.Clear()
 
-	return nil
+	return serr
+}
+
+func (server *Server) ListenAddr() net.Addr {
+	return server.addr
+}
+
+func (server *Server) IsRunning() bool {
+	return server.status == SERVER_STATUS_RUNNING
 }
 
 func (server *Server) Stop() {
