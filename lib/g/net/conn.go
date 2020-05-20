@@ -9,7 +9,6 @@ import (
 	"github.com/RuchDB/chaos/lib/g/net/codec"
 )
 
-
 /************************* Connection *************************/
 
 const (

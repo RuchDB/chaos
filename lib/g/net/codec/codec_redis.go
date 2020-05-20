@@ -1,13 +1,12 @@
-package redis
+package codec
 
 import (
 	"bytes"
 )
 
-
 /************************* Redis Encoder & Decoder *************************/
 
-type RedisEncoder struct { }
+type RedisEncoder struct{}
 
 func (encoder *RedisEncoder) Encode(v interface{}) ([]byte, error) {
 	switch data := v.(type) {
@@ -24,7 +23,7 @@ func (encoder *RedisEncoder) Encode(v interface{}) ([]byte, error) {
 	}
 }
 
-type RedisDecoder struct { }
+type RedisDecoder struct{}
 
 func (decoder *RedisDecoder) TryReadLen(bs []byte) (int, error) {
 	pos := bytes.IndexByte(bs, '\n')
@@ -32,7 +31,7 @@ func (decoder *RedisDecoder) TryReadLen(bs []byte) (int, error) {
 		return 0, ERR_CODEC_DATA_INCOMPLETE
 	}
 
-	if pos == 0 || bs[pos - 1] != '\r' {
+	if pos == 0 || bs[pos-1] != '\r' {
 		return 0, ERR_CODEC_DATA_INVALID
 	}
 
@@ -40,22 +39,21 @@ func (decoder *RedisDecoder) TryReadLen(bs []byte) (int, error) {
 }
 
 func (decoder *RedisDecoder) Decode(bs []byte, v interface{}) error {
-	if len(bs) < 2 || !(bs[len(bs) - 2] == '\r' && bs[len(bs) - 1] == '\n') {
+	if len(bs) < 2 || !(bs[len(bs)-2] == '\r' && bs[len(bs)-1] == '\n') {
 		return ERR_CODEC_DATA_INVALID
 	}
 
 	switch data := v.(type) {
 	case *[]byte:
-		*data = bs[:len(bs) - 2]
+		*data = bs[:len(bs)-2]
 	case *string:
-		*data = string(bs[:len(bs) - 2])
+		*data = string(bs[:len(bs)-2])
 	default:
 		return ERR_CODEC_TYPE_UNSUPPORTED
 	}
 
 	return nil
 }
-
 
 /************************* Redis Codec *************************/
 

@@ -1,4 +1,4 @@
-package proto
+package codec
 
 import (
 	"errors"
@@ -9,7 +9,6 @@ const (
 
 	CODEC_NAME_REDIS = "Redis Codec"
 )
-
 
 /************************* Codec Types *************************/
 
@@ -35,7 +34,6 @@ type Decoder interface {
 	TryReadLen(bs []byte) (int, error)
 	Decode(bs []byte, v interface{}) error
 }
-
 
 /************************* Codec Map *************************/
 
