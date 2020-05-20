@@ -3,10 +3,10 @@ package net
 import (
 	"net"
 
-	"github.com/RuchDB/chaos/buf"
-	"github.com/RuchDB/chaos/log"
-	"github.com/RuchDB/chaos/util"
-	"github.com/RuchDB/chaos/types"
+	"github.com/RuchDB/chaos/lib/g/buf"
+	"github.com/RuchDB/chaos/lib/g/log"
+	"github.com/RuchDB/chaos/lib/g/types"
+	"github.com/RuchDB/chaos/lib/g/util"
 )
 
 /************************* Connection *************************/
@@ -25,7 +25,7 @@ type Connection struct {
 }
 
 func NewConnection(conn net.Conn) *Connection {
-	tsCur := util.Timestamp(util.Now())
+	tsCur := util.TimestampMs(util.Now())
 
 	return &Connection{
 		conn: conn,
@@ -37,7 +37,7 @@ func NewConnection(conn net.Conn) *Connection {
 }
 
 func (conn *Connection) OpenSession() {
-	
+
 }
 
 /************************* Connection Manager *************************/
@@ -57,7 +57,7 @@ func NewConnectionManager(maxConns int) *ConnectionManager {
 func (manager *ConnectionManager) Handle(tcpConn net.Conn) {
 	// Reach max connection size, reject new incomming connections
 	if manager.conns.Len() >= manager.maxConns {
-		log.Warnf("Reach max connection size [%d], reject incoming one [%s]", 
+		log.Warnf("Reach max connection size [%d], reject incoming one [%s]",
 			manager.maxConns, tcpConn.RemoteAddr().String())
 		return
 	}

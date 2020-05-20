@@ -4,10 +4,9 @@ import (
 	"net"
 
 	"github.com/RuchDB/chaos/lib/g/buf"
-	"github.com/RuchDB/chaos/lib/g/util"
 	"github.com/RuchDB/chaos/lib/g/net/codec"
+	"github.com/RuchDB/chaos/lib/g/util"
 )
-
 
 /************************* Connection *************************/
 
@@ -40,12 +39,7 @@ func NewConnection(conn *net.TCPConn, netCodec codec.Codec) *Connection {
 	}
 }
 
-
 /************************* Connection Manager *************************/
 
 type ConnectionManager struct {
-	
 }
-
-
-
