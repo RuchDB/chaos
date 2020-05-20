@@ -86,7 +86,7 @@ func (server *Server) Run() error {
 		logger.Infof("Remote connection [%s] is accepted", conn.RemoteAddr().String())
 
 		// Delegate the incoming connection to connection manager
-		server.connManager.Handle(conn)
+		server.connManager.Handle(NewConnection(conn, server.netCodec))
 	}
 	
 	logger.Infof("Shutdown server on TCP [%s]", server.addr.String())

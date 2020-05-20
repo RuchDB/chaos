@@ -134,4 +134,3 @@ func (set *ConcurrentSet) ForEach(visit func (Any)) {
 		visit(elem)
 	}
 }
-

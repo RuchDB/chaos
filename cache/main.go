@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/RuchDB/chaos/lib/g/log"
+	"github.com/RuchDB/chaos/cache/log"
+
 	"github.com/RuchDB/chaos/lib/g/net"
 )
 
