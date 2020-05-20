@@ -45,13 +45,13 @@ func (set *Set) Clear() {
 	set.elems = make(map[Any]Void)
 }
 
-func (set *Set) ForEach(visit func (Any)) {
+func (set *Set) ForEach(visit func(Any)) {
 	for elem, _ := range set.elems {
 		visit(elem)
 	}
 }
 
-func (set *Set) Filter(predict func (Any) bool) []Any {
+func (set *Set) Filter(predict func(Any) bool) []Any {
 	filtered := make([]Any, 0, len(set.elems))
 	for elem, _ := range set.elems {
 		if predict(elem) {
@@ -61,7 +61,7 @@ func (set *Set) Filter(predict func (Any) bool) []Any {
 	return filtered
 }
 
-func (set *Set) DeleteIf(predict func (Any) bool) {
+func (set *Set) DeleteIf(predict func(Any) bool) {
 	for elem, _ := range set.elems {
 		if predict(elem) {
 			delete(set.elems, elem)
@@ -69,12 +69,11 @@ func (set *Set) DeleteIf(predict func (Any) bool) {
 	}
 }
 
-
 /************************* Concurrent Set *************************/
 
 type ConcurrentSet struct {
 	elems map[Any]Void
-	
+
 	locker sync.RWMutex
 }
 
@@ -126,7 +125,7 @@ func (set *ConcurrentSet) GetAll() []Any {
 }
 
 // Take care NOT to run Long-Time routine
-func (set *ConcurrentSet) ForEach(visit func (Any)) {
+func (set *ConcurrentSet) ForEach(visit func(Any)) {
 	set.locker.RLock()
 	defer set.locker.RUnlock()
 

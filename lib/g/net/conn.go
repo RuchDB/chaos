@@ -4,9 +4,9 @@ import (
 	"net"
 
 	"github.com/RuchDB/chaos/lib/g/buf"
-	"github.com/RuchDB/chaos/lib/g/util"
-	"github.com/RuchDB/chaos/lib/g/types"
 	"github.com/RuchDB/chaos/lib/g/net/codec"
+	"github.com/RuchDB/chaos/lib/g/types"
+	"github.com/RuchDB/chaos/lib/g/util"
 )
 
 /************************* Connection *************************/
@@ -28,6 +28,7 @@ type Connection struct {
 }
 
 func NewConnection(conn *net.TCPConn, netCodec codec.Codec) *Connection {
+	tsCur := util.TimestampMs(util.Now())
 	return &Connection{
 		conn: conn,
 
@@ -35,8 +36,8 @@ func NewConnection(conn *net.TCPConn, netCodec codec.Codec) *Connection {
 
 		netCodec: netCodec,
 
-		tsCreated:    util.TimestampMs(),
-		tsLastActive: util.TimestampMs(),
+		tsCreated:    tsCur,
+		tsLastActive: tsCur,
 	}
 }
 
@@ -52,19 +53,18 @@ func (c *Connection) Close() {
 
 }
 
-
 /************************* Connection Manager *************************/
 
 type ConnectionManager struct {
 	// Connection Map -- [remote addr --> conn]
 	conns *types.ConcurrentMap
-	
+
 	maxConns int
 }
 
 func NewConnectionManager(maxConns int) *ConnectionManager {
 	return &ConnectionManager{
-		conns: types.NewConcurrentMap(),
+		conns:    types.NewConcurrentMap(),
 		maxConns: maxConns,
 	}
 }
@@ -72,7 +72,7 @@ func NewConnectionManager(maxConns int) *ConnectionManager {
 func (manager *ConnectionManager) Handle(c *Connection) {
 	// Reach max connection size, reject new incomming connections
 	if manager.conns.Len() >= manager.maxConns {
-		logger.Warnf("Reach connection limit [%d], reject connection [%s]", 
+		logger.Warnf("Reach connection limit [%d], reject connection [%s]",
 			manager.maxConns, c.RemoteAddr().String())
 		return
 	}
@@ -88,4 +88,8 @@ func (manager *ConnectionManager) Handle(c *Connection) {
 	// TODO: Open session for connection
 
 	manager.conns.Put(c.RemoteAddr().String(), c)
+}
+
+func (manager *ConnectionManager) Clear() {
+	// TODO:
 }

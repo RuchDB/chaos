@@ -8,7 +8,7 @@ import (
 
 type ConcurrentMap struct {
 	elems map[Any]Any
-	
+
 	locker sync.RWMutex
 }
 
@@ -37,7 +37,8 @@ func (m *ConcurrentMap) Get(key Any) (Any, bool) {
 	m.locker.RLock()
 	defer m.locker.RUnlock()
 
-	return m.elems[key]
+	val, exist := m.elems[key]
+	return val, exist
 }
 
 func (m *ConcurrentMap) Put(key, value Any) {
@@ -55,7 +56,7 @@ func (m *ConcurrentMap) Delete(key Any) {
 }
 
 // Take care NOT to run Long-Time routine
-func (m *ConcurrentMap) ForEach(visit func (Any, Any)) {
+func (m *ConcurrentMap) ForEach(visit func(Any, Any)) {
 	m.locker.RLock()
 	defer m.locker.RUnlock()
 

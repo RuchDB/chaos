@@ -2,15 +2,15 @@ package util
 
 import (
 	"bytes"
-	"strings"
-	"strconv"
 	"runtime"
+	"strconv"
+	"strings"
 )
 
 // [func, file, line] of caller
 func Caller(depth int) (string, string, int, bool) {
 	pcs := make([]uintptr, 1)
-	if n := runtime.Callers(2 + depth, pcs); n != 1 {
+	if n := runtime.Callers(2+depth, pcs); n != 1 {
 		return "", "", 0, false
 	}
 
@@ -20,13 +20,13 @@ func Caller(depth int) (string, string, int, bool) {
 	// Trim function name: github.com/RuchDB/chaos/main.main
 	fn := frame.Function
 	if dot := strings.LastIndexByte(fn, '.'); dot >= 0 {
-		fn = fn[dot + 1:]
+		fn = fn[dot+1:]
 	}
 
 	// Trim file name: /home/user/workspace/RuchDB/chaos/main.go
 	file := frame.File
 	if slash := strings.LastIndexByte(file, '/'); slash >= 0 {
-		file = file[slash + 1:]
+		file = file[slash+1:]
 	}
 
 	return fn, file, frame.Line, true
@@ -44,7 +44,7 @@ func Goid() (int64, bool) {
 	if space <= 0 {
 		return 0, false
 	}
-	buf = buf[10:10 + space]
+	buf = buf[10 : 10+space]
 
 	gid, err := strconv.ParseInt(string(buf), 10, 64)
 	if err != nil {

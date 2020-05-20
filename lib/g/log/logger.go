@@ -9,9 +9,9 @@ const (
 	LOG_WARN           = 4
 	LOG_ERROR          = 5
 
-	LOG_ALL LogLevel = 0
-	LOG_NONE         = 9999
-	LOG_DEFAULT      = LOG_INFO
+	LOG_ALL     LogLevel = 0
+	LOG_NONE             = 9999
+	LOG_DEFAULT          = LOG_INFO
 
 	TAG_TRACE = "TRACE"
 	TAG_DEBUG = "DEBUG"

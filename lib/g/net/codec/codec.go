@@ -12,7 +12,7 @@ const (
 
 /************************* Codec Types *************************/
 
-const (
+var (
 	ERR_CODEC_TYPE_UNSUPPORTED = errors.New("unsupported data type")
 	ERR_CODEC_DATA_INCOMPLETE  = errors.New("incomplete data")
 	ERR_CODEC_DATA_INVALID     = errors.New("invalid data")
@@ -37,7 +37,7 @@ type Decoder interface {
 
 /************************* Codec Map *************************/
 
-const (
+var (
 	ERR_CODEC_EXIST   = errors.New("codec already exists")
 	ERR_CODEC_UNEXIST = errors.New("codec unexists")
 )

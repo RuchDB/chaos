@@ -5,12 +5,12 @@ import (
 	"github.com/RuchDB/chaos/lib/g/net"
 )
 
-var logger log.Logger
+var Logger log.Logger
 
 func init() {
-	logger = log.NewFileBasedLoggerBuilder().
+	Logger = log.NewFileBasedLoggerBuilder().
 		SetLogLevel(log.LOG_INFO).
 		Build()
-	
-	net.RegisterLogger(logger)
+
+	net.RegisterLogger(Logger)
 }

@@ -64,7 +64,7 @@ func (buf *decodeBuffer) Peak(n int) ([]byte, error) {
 	}
 
 	n = util.MinInt(n, buf.Len())
-	return buf.buf[buf.head:buf.head + n], nil
+	return buf.buf[buf.head : buf.head+n], nil
 }
 
 func (buf *decodeBuffer) PeakExact(n int) ([]byte, error) {
@@ -75,7 +75,7 @@ func (buf *decodeBuffer) PeakExact(n int) ([]byte, error) {
 		return nil, ERR_BUF_NOT_ENOUGH
 	}
 
-	return buf.buf[buf.head:buf.head + n], nil
+	return buf.buf[buf.head : buf.head+n], nil
 }
 
 func (buf *decodeBuffer) PeakAll() ([]byte, error) {
@@ -92,7 +92,7 @@ func (buf *decodeBuffer) Read(n int) ([]byte, error) {
 	}
 
 	n = util.MinInt(n, buf.Len())
-	bs := buf.buf[buf.head:buf.head + n]
+	bs := buf.buf[buf.head : buf.head+n]
 	buf.head = buf.head + n
 
 	buf.shrink()
@@ -108,7 +108,7 @@ func (buf *decodeBuffer) ReadExact(n int) ([]byte, error) {
 		return nil, ERR_BUF_NOT_ENOUGH
 	}
 
-	bs := buf.buf[buf.head:buf.head + n]
+	bs := buf.buf[buf.head : buf.head+n]
 	buf.head = buf.head + n
 
 	buf.shrink()
@@ -132,7 +132,7 @@ func (buf *decodeBuffer) ReadAll() ([]byte, error) {
 
 func (buf *decodeBuffer) shrink() {
 	// If buffer size is too large, shrink it
-	if buf.size > buf.minSize * DECODE_BUFFER_STABLE_SCALE {
+	if buf.size > buf.minSize*DECODE_BUFFER_STABLE_SCALE {
 		// New buffer size
 		newSize := buf.minSize
 		blen := buf.Len()
@@ -160,7 +160,7 @@ func (buf *decodeBuffer) Write(bs []byte) error {
 	}
 
 	// Move data to the beginning
-	if buf.size - buf.tail < len(bs) {
+	if buf.size-buf.tail < len(bs) {
 		blen := buf.Len()
 		copy(buf.buf, buf.buf[buf.head:buf.tail])
 
@@ -185,7 +185,7 @@ func (buf *decodeBuffer) remain(size int) error {
 	for newSize < size {
 		newSize *= 2
 	}
-	for newSize / 2 >= size {
+	for newSize/2 >= size {
 		newSize /= 2
 	}
 

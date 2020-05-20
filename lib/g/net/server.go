@@ -1,13 +1,13 @@
 package net
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"time"
-	"errors"
 
-	"github.com/RuchDB/chaos/lib/g/util"
 	"github.com/RuchDB/chaos/lib/g/net/codec"
+	"github.com/RuchDB/chaos/lib/g/util"
 )
 
 const (
@@ -22,9 +22,9 @@ const (
 /************************* TCP/IPv4 Server *************************/
 
 const (
-	SERVER_STATUS_INITED   = 0
-	SERVER_STATUS_RUNNING  = 1
-	SERVER_STATUS_STOPPED  = 2
+	SERVER_STATUS_INITED  = 0
+	SERVER_STATUS_RUNNING = 1
+	SERVER_STATUS_STOPPED = 2
 
 	SERVER_CTRL_FLAG_INIT = 0
 	SERVER_CTRL_FLAG_RUN  = 1
@@ -47,7 +47,7 @@ func NewServer(addr *net.TCPAddr, netCodec codec.Codec, maxConns int) *Server {
 		addr:     addr,
 		status:   SERVER_STATUS_INITED,
 		ctrlFlag: SERVER_CTRL_FLAG_INIT,
-		
+
 		netCodec: netCodec,
 
 		connManager: NewConnectionManager(maxConns),
@@ -69,7 +69,7 @@ func (server *Server) Run() error {
 	// Accept timeout
 	server.listener.SetDeadline(time.Now().Add(time.Millisecond * SERVER_ACCEPT_TIMEOUT_MS))
 
-	logger.Infof("Listen on TCP [%s] & Wait for incoming connections", server.addr.String())
+	logger.Infof("Listen on TCP [%s], wait for incoming connections", server.addr.String())
 	// Loop to accept incoming connections
 	var serr error
 	for server.status == SERVER_STATUS_RUNNING && server.ctrlFlag != SERVER_CTRL_FLAG_STOP {
@@ -88,7 +88,7 @@ func (server *Server) Run() error {
 		// Delegate the incoming connection to connection manager
 		server.connManager.Handle(NewConnection(conn, server.netCodec))
 	}
-	
+
 	logger.Infof("Shutdown server on TCP [%s]", server.addr.String())
 	server.status = SERVER_STATUS_STOPPED
 	server.listener.Close()
@@ -109,7 +109,6 @@ func (server *Server) IsRunning() bool {
 func (server *Server) Stop() {
 	server.ctrlFlag = SERVER_CTRL_FLAG_STOP
 }
-
 
 /************************* Server Creator *************************/
 
@@ -136,12 +135,12 @@ func (creator *ServerCreator) ConfigListenAddr(addr *net.TCPAddr) error {
 }
 
 func (creator *ServerCreator) ConfigListenAddrByString(addr string) error {
-	addr, err := net.ResolveTCPAddr("tcp", addr)
+	taddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
 		return errors.New("config error: invalid address [ipv4:port]")
 	}
 
-	creator.addr = addr
+	creator.addr = taddr
 	return nil
 }
 

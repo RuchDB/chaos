@@ -48,7 +48,7 @@ func (flog *fileLogger) logf(level LogLevel, tag string, format string, v ...int
 		body := fmt.Sprintf(format, v...)
 
 		var msg string
-		if len(body) > 0 && body[len(body) - 1] == '\n' {
+		if len(body) > 0 && body[len(body)-1] == '\n' {
 			msg = fmt.Sprintf("%s %s", flog.prefix(tag), body)
 		} else {
 			msg = fmt.Sprintf("%s %s\n", flog.prefix(tag), body)
@@ -59,11 +59,15 @@ func (flog *fileLogger) logf(level LogLevel, tag string, format string, v ...int
 }
 
 func (flog *fileLogger) prefix(tag string) string {
-	// 2020-01-01 00:00:00 [INFO] [main.go:10 main] [G1]
+	// 2020-01-01 00:00:00 [G1] [INFO] [main.go:10 main]
 	var builder strings.Builder
 
 	time := util.FormatTime(util.Now())
 	builder.WriteString(time)
+
+	if goid, ok := util.Goid(); ok {
+		builder.WriteString(fmt.Sprintf(" [G%d]", goid))
+	}
 
 	builder.WriteString(fmt.Sprintf(" [%s]", tag))
 
@@ -71,10 +75,6 @@ func (flog *fileLogger) prefix(tag string) string {
 	//           OTHERWISE the CALLER FRAME may be NOT what we need.
 	if fn, file, line, ok := util.Caller(3 + flog.callerDepth); ok {
 		builder.WriteString(fmt.Sprintf(" [%s:%d %s]", file, line, fn))
-	}
-
-	if goid, ok := util.Goid(); ok {
-		builder.WriteString(fmt.Sprintf(" [G%d]", goid))
 	}
 
 	return builder.String()
@@ -120,7 +120,6 @@ func (flog *fileLogger) Errorf(format string, v ...interface{}) {
 	flog.logf(LOG_ERROR, TAG_ERROR, format, v...)
 }
 
-
 /************************* File Logger Builder *************************/
 
 type fileLoggerBuilder struct {
@@ -150,7 +149,7 @@ func (builder *fileLoggerBuilder) SetCallerDepth(depth int) *fileLoggerBuilder {
 func (builder *fileLoggerBuilder) Build() Logger {
 	return &fileLogger{
 		logLevel: builder.logLevel,
-		
+
 		callerDepth: builder.callerDepth,
 	}
 }

@@ -2,9 +2,8 @@ package types
 
 /************************* Void Type *************************/
 
-type Void struct { }
-
+type Void struct{}
 
 /************************* Any Type *************************/
 
-type Any interface { }
+type Any interface{}
