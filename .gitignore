@@ -16,3 +16,8 @@
 
 # Build directory
 build/
+
+# Misc
+.DS_Store
+.idea
+.vscode
