@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os/exec"
 	"path"
@@ -14,7 +13,7 @@ const (
 	MdFile = ".md"
 )
 
-func main() {
+func countStats() map[string]int {
 	result := make(map[string]int)
 
 	countCache(result)
@@ -22,12 +21,7 @@ func main() {
 	countDocs(result)
 	countTools(result)
 
-	var total int
-	for key, value := range result {
-		fmt.Printf("committer: %s, total: %d\n", key, value)
-		total += value
-	}
-	fmt.Printf("total code line: %d\n", total)
+	return result
 }
 
 func countCache(countResult map[string]int) map[string]int {
