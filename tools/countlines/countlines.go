@@ -9,8 +9,11 @@ import (
 )
 
 const (
-	GoFile = ".go"
-	MdFile = ".md"
+	GoFile   = ".go"
+	JSonFile = ".json"
+	MdFile   = ".md"
+	TSFile   = ".ts"
+	TSXFile  = ".tsx"
 )
 
 func countStats() map[string]int {
@@ -21,30 +24,30 @@ func countStats() map[string]int {
 	countDocs(result)
 	countTools(result)
 
+	//fmt.Printf("%#v\n", result)
 	return result
 }
 
 func countCache(countResult map[string]int) map[string]int {
-	return countMod("../../cache", GoFile, countResult)
+	return countMod("../../cache", countResult, GoFile)
 }
 
 func countLib(countResult map[string]int) map[string]int {
-	return countMod("../../lib", GoFile, countResult)
+	return countMod("../../lib", countResult, GoFile)
 }
 
 func countDocs(countResult map[string]int) map[string]int {
-	return countMod("../../docs", MdFile, countResult)
+	return countMod("../../docs", countResult, MdFile)
 }
 
 func countTools(countResult map[string]int) map[string]int {
-	return countMod("../", GoFile, countResult)
+	return countMod("../", countResult, GoFile, TSFile, TSXFile, JSonFile)
 }
 
-func countMod(modPath string, fileType string, countResult map[string]int) map[string]int {
+func countMod(modPath string, countResult map[string]int, fileTypes ...string) map[string]int {
 	res := scanDirectory(modPath)
-
 	for _, r := range res {
-		countSingleFile(r, fileType, countResult)
+		countSingleFile(r, countResult, fileTypes...)
 	}
 
 	return countResult
@@ -70,23 +73,22 @@ func scanDirectory(dir string) []string {
 	return dirList
 }
 
-func countSingleFile(file string, fileType string, result map[string]int) map[string]int {
-	if !strings.Contains(file, fileType) {
-		return result
-	}
+func countSingleFile(file string, result map[string]int, fileTypes ...string) map[string]int {
+	for _, fileType := range fileTypes {
+		if strings.Contains(file, fileType) {
+			cmd := exec.Command("git", "blame", file)
+			output, _ := cmd.CombinedOutput()
+			for _, line := range strings.Split(string(output), "\n") {
+				reg := regexp.MustCompile(`\((\w+)\s`)
+				committer := reg.FindStringSubmatch(line)
 
-	cmd := exec.Command("git", "blame", file)
-	output, _ := cmd.CombinedOutput()
-
-	for _, line := range strings.Split(string(output), "\n") {
-		reg := regexp.MustCompile(`\((\w+)\s`)
-		committer := reg.FindStringSubmatch(line)
-
-		if len(committer) > 1 {
-			if _, ok := result[committer[1]]; ok {
-				result[committer[1]] += 1
-			} else {
-				result[committer[1]] = 1
+				if len(committer) > 1 {
+					if _, ok := result[committer[1]]; ok {
+						result[committer[1]] += 1
+					} else {
+						result[committer[1]] = 1
+					}
+				}
 			}
 		}
 	}
