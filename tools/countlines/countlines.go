@@ -9,11 +9,14 @@ import (
 )
 
 const (
-	GoFile   = ".go"
-	JSonFile = ".json"
-	MdFile   = ".md"
-	TSFile   = ".ts"
-	TSXFile  = ".tsx"
+	ConfFile   = ".conf"
+	DockerFile = "Dockerfile"
+	GoFile     = ".go"
+	JSonFile   = ".json"
+	MakeFile   = "Makefile"
+	MdFile     = ".md"
+	TSFile     = ".ts"
+	TSXFile    = ".tsx"
 )
 
 func countStats() map[string]int {
@@ -22,7 +25,9 @@ func countStats() map[string]int {
 	countCache(result)
 	countLib(result)
 	countDocs(result)
+	countTest(result)
 	countTools(result)
+	countRoot(result)
 
 	//fmt.Printf("%#v\n", result)
 	return result
@@ -40,8 +45,16 @@ func countDocs(countResult map[string]int) map[string]int {
 	return countMod("../../docs", countResult, MdFile)
 }
 
+func countTest(countResult map[string]int) map[string]int {
+	return countMod("../", countResult, GoFile, MdFile)
+}
+
 func countTools(countResult map[string]int) map[string]int {
-	return countMod("../", countResult, GoFile, TSFile, TSXFile, JSonFile)
+	return countMod("../", countResult, GoFile, TSFile, TSXFile, JSonFile, ConfFile, DockerFile)
+}
+
+func countRoot(countResult map[string]int) map[string]int {
+	return countMod("../..", countResult, MakeFile, MdFile)
 }
 
 func countMod(modPath string, countResult map[string]int, fileTypes ...string) map[string]int {
