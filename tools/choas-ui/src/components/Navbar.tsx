@@ -32,11 +32,11 @@ const Navbar: React.SFC = () => {
                     <PseudoBox
                         position='relative'
                         opacity={0.4}>
-                        <Link href='/'>
-                            <a>Home</a>
-                        </Link>
+                        <Heading as="h3" size="lg">
+                            Chaos Project
+                            </Heading>
                     </PseudoBox>
-                    <PseudoBox
+                    {/* <PseudoBox
                         position='relative'
                         opacity={0.4}>
                         <Link href='/form'>
@@ -56,7 +56,7 @@ const Navbar: React.SFC = () => {
                         <Link href='/list'>
                             <a>List</a>
                         </Link>
-                    </PseudoBox>
+                    </PseudoBox> */}
                 </Stack>
                 <Box>
                     <IconButton
